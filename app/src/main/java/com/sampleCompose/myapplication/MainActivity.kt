@@ -95,7 +95,7 @@ fun Navigation() {
                 // Retrieve the current navigation back stack entry and current route
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
-
+                val context = LocalContext.current
                 //simple loop which iterates through item list of nav links and lists them as BottomNavItem
                 items.forEach { item ->
                     BottomNavigationItem(
@@ -116,14 +116,22 @@ fun Navigation() {
                         onClick = {
                             //ensures that we are only navigating when we click on a different route
                             if (currentRoute != item.route) {
-                                // Pop back stack to the start destination and navigate to the selected item
-                                navController.graph.startDestinationRoute?.let {
-                                    navController.popBackStack(it, inclusive = true)
-                                }
-                                // Navigate to the selected item's route
-                                navController.navigate(item.route) {
-                                    // Specify true to ensure the item is not added to the back stack again
-                                    launchSingleTop = true
+                                if (item == NavigationItem.Logging ){
+                                    val savedCity = navBackStackEntry?.arguments?.getString("city")
+                                    if (savedCity == null || savedCity.isBlank()) {
+                                        Toast.makeText(context,"Please enter a city name!", Toast.LENGTH_SHORT).show()
+                                    }
+                                }else{
+                                    // Pop back stack to the start destination and navigate to the selected item
+                                    navController.graph.startDestinationRoute?.let {
+                                        navController.popBackStack(it, inclusive = true)
+                                    }
+
+                                    // Navigate to the selected item's route
+                                    navController.navigate(item.route) {
+                                        // Specify true to ensure the item is not added to the back stack again
+                                        launchSingleTop = true
+                                    }
                                 }
                             }
                         }

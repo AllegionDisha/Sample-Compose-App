@@ -11,5 +11,5 @@ sealed class NavigationItem(val route: String, val label: String, val icons: Ima
     object Home: NavigationItem("Home", "Home", Icons.Default.Home)
     object Settings: NavigationItem("Settings", "Settings", Icons.Default.Settings)
 
-    object Logging: NavigationItem("Log/{cityName}", "Log", Icons.Default.List)
+    object Logging: NavigationItem("Log/{city}", "Log", Icons.Default.List)
 }
