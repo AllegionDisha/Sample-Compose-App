@@ -1,6 +1,7 @@
 package com.sampleCompose.myapplication
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -35,9 +36,14 @@ import androidx.navigation.compose.rememberNavController
 import com.sampleCompose.myapplication.ui.theme.SampleComposeAppTheme
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,19 +66,27 @@ class MainActivity : ComponentActivity() {
 fun NavigationController(navController: NavHostController){
     NavHost(navController = navController, startDestination = NavigationItem.Home.route){
         composable(NavigationItem.Home.route){
-            HomeUI()
+            HomeUI(navController = navController)
         }
         composable(NavigationItem.Settings.route){
-            SettingsUI()
+            SettingsUI(navController = navController)
+        }
+        composable(
+            route = "logging/{city}",
+            arguments = listOf(navArgument("city") { type = NavType.StringType })
+        ){ entry ->
+            val city = entry.arguments?.getString("city") ?: ""
+            LoggingUI(navController = navController, cityState = city)
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Navigation() {
     // Create variables to list the different screens and remember the current screen
     val navController = rememberNavController()
-    val items = listOf(NavigationItem.Home, NavigationItem.Settings)
+    val items = listOf(NavigationItem.Home, NavigationItem.Logging, NavigationItem.Settings)
 
     Scaffold(
         bottomBar = {
@@ -127,8 +141,10 @@ fun Navigation() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeUI(){
+fun HomeUI(navController:NavController){
     val cityState = remember { mutableStateOf("") }
+    val isError = cityState.value.isEmpty()
+    val context = LocalContext.current
 
     Column(modifier = Modifier
         .fillMaxSize()
@@ -149,31 +165,52 @@ fun HomeUI(){
         TextField(
             value = cityState.value,
             onValueChange = { cityState.value = it },
-            modifier = Modifier.size(width = 300.dp, height = 35.dp)
+            modifier = Modifier.size(width = 300.dp, height = 50.dp),
+            textStyle = TextStyle(
+                fontSize = 15.sp,
+            )
+
         )
         Spacer(modifier = Modifier.height(40.dp))
         // Submit button
-        Button(onClick = { /* logic here */ }) {
+        Button(onClick = {
+            if (!isError) {
+                navController.navigate("logging/${cityState.value}")
+            } else{
+                Toast.makeText(context,"Please enter a city name!", Toast.LENGTH_SHORT).show()
+            }
+        }) {
             Text(text = "Submit")
         }
     }
 }
-
 @Composable
-fun SettingsUI(){
+fun SettingsUI(navController:NavController){
+    var isStandardMeasurement: MutableState<Boolean> = remember {mutableStateOf(true)}
     Column(modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Submit button
-        Button(onClick = { /* logic here */ }) {
+        Button(onClick = { isStandardMeasurement.value = false }) {
             Text(text = "Metric")
         }
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        Button(onClick = { /* logic here */ }) {
+        Button(onClick = { isStandardMeasurement.value = true}) {
             Text(text = "Standard")
         }
     }
+}
+
+@Composable
+fun LoggingUI(navController:NavController, cityState:String){
+    Text(
+        text = cityState,
+        style = TextStyle(
+            fontWeight = FontWeight.Bold,
+            fontSize = 30.sp
+        )
+    )
 }

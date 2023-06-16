@@ -2,6 +2,7 @@ package com.sampleCompose.myapplication
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -9,4 +10,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 sealed class NavigationItem(val route: String, val label: String, val icons: ImageVector){
     object Home: NavigationItem("Home", "Home", Icons.Default.Home)
     object Settings: NavigationItem("Settings", "Settings", Icons.Default.Settings)
+
+    object Logging: NavigationItem("Log/{cityName}", "Log", Icons.Default.List)
 }
