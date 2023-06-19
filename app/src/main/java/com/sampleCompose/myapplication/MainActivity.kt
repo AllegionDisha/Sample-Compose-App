@@ -48,6 +48,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.sampleCompose.myapplication.ui.theme.SampleComposeAppTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -270,16 +272,28 @@ fun LoggingUI(navController:NavController, cityState:String, model: AppViewModel
             modifier = Modifier.padding(bottom = 20.dp)
         )
         LaunchedEffect(cityState) {
-            val response = makeApiCall(cityState, model, context)
-            if (response.isSuccessful){
-                Log.d("Main activity", "NOTE: Successful API call")
-                weatherData = response.body()
-                Log.d("response data", weatherData.toString())
-            }else{
-                Log.d("Main activity", "NOTE: Failed API call")
-                errorMessage.value = "Sorry, that city name is not retrievable"
+            Log.d("Start", "NOTE: HERE BEFORE")
+            Log.d("City Name", cityState)
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    makeApiCall(cityState, model, context)
+                }
+                Log.d("Main", "NOTE: HERE AFTER")
+                if (response.isSuccessful) {
+                    Log.d("Main activity", "NOTE: Successful API call")
+                    val weatherData = response.body()
+                    Log.d("response data", weatherData.toString())
+                } else {
+                    Log.d("Main fail", "NOTE: Failed API call")
+                    errorMessage.value = "Sorry, that city name is not retrievable"
+                }
+            } catch (e: Exception) {
+                Log.e("Main exception", "NOTE: Exception during API call", e)
+                errorMessage.value = "An error occurred during the API call"
             }
         }
+
+        Log.d("AFTER", "NOTE: Continued call")
         errorMessage.value?.let { message ->
             Text(text = message)
         }
