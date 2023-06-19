@@ -57,7 +57,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         //pass this to composable so every screen can have access to metric or standard vars
-        var stateVars = AppViewModel()
+        val stateVars = AppViewModel()
 
         super.onCreate(savedInstanceState)
         setContent {
@@ -219,7 +219,15 @@ fun SettingsUI(navController:NavController, model:AppViewModel){
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Submit button
+        Text(
+            text = "Measurement Type: ${model.MeasurementOption.value}",
+            style = TextStyle(
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp
+            ),
+            modifier = Modifier.padding(bottom = 20.dp)
+        )
+        // measurement buttons
         Button(onClick = {
             model.setMeasurementOption("metric")
         }) {
@@ -241,7 +249,6 @@ fun SettingsUI(navController:NavController, model:AppViewModel){
         }
     }
 }
-
 @Composable
 fun LoggingUI(navController:NavController, cityState:String, model: AppViewModel){
     val measurementType = model.MeasurementOption.value
@@ -271,6 +278,7 @@ fun LoggingUI(navController:NavController, cityState:String, model: AppViewModel
             ),
             modifier = Modifier.padding(bottom = 20.dp)
         )
+        //city
         LaunchedEffect(cityState) {
             Log.d("Start", "NOTE: HERE BEFORE")
             Log.d("City Name", cityState)
@@ -281,11 +289,12 @@ fun LoggingUI(navController:NavController, cityState:String, model: AppViewModel
                 Log.d("Main", "NOTE: HERE AFTER")
                 if (response.isSuccessful) {
                     Log.d("Main activity", "NOTE: Successful API call")
-                    val weatherData = response.body()
+                    weatherData = response.body() // Update the existing weatherData variable
                     Log.d("response data", weatherData.toString())
                 } else {
                     Log.d("Main fail", "NOTE: Failed API call")
                     errorMessage.value = "Sorry, that city name is not retrievable"
+                    Log.d("response data", response.message().toString())
                 }
             } catch (e: Exception) {
                 Log.e("Main exception", "NOTE: Exception during API call", e)
@@ -293,11 +302,13 @@ fun LoggingUI(navController:NavController, cityState:String, model: AppViewModel
             }
         }
 
+
         Log.d("AFTER", "NOTE: Continued call")
         errorMessage.value?.let { message ->
             Text(text = message)
         }
         weatherData?.let { data ->
+
             val temperatureUnit = when (measurementType) {
                 "standard" -> "K"
                 "metric" -> "°C"
@@ -310,10 +321,26 @@ fun LoggingUI(navController:NavController, cityState:String, model: AppViewModel
             val weatherDescription = data.weather.firstOrNull()?.description
             val currTemp = "${data.main.temp?.toString()}$temperatureUnit"
 
-            Text(text = "Current Temp: $currTemp")
-            Text(text = "Min Temp: $minTemp")
-            Text(text = "Max Temp: $maxTemp")
-            Text(text = "Weather: $weatherDescription")
+            Text(text = "Current Temp: $currTemp",
+                style = TextStyle(
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 15.sp
+            ))
+            Text(text = "Min Temp: $minTemp",
+                style = TextStyle(
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 15.sp
+                ))
+            Text(text = "Max Temp: $maxTemp",
+                style = TextStyle(
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 15.sp
+                ))
+            Text(text = "Weather: $weatherDescription",
+                style = TextStyle(
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 15.sp
+                ))
         }
     }
 }
@@ -321,7 +348,7 @@ suspend fun makeApiCall(city: String, model: AppViewModel, context: Context):Res
     val apiKey = context.getString(R.string.api_key)
     val units = model.MeasurementOption.value
     val api = Retrofit.Builder()
-        .baseUrl("https://api.openweathermap.org/data/2.5/")
+        .baseUrl("http://api.openweathermap.org/data/2.5/")
         .addConverterFactory(GsonConverterFactory.create())
         // we need to add converter factory to
         // convert JSON object to Java object
