@@ -280,8 +280,6 @@ fun LoggingUI(navController:NavController, cityState:String, model: AppViewModel
         )
         //city
         LaunchedEffect(cityState) {
-            Log.d("Start", "NOTE: HERE BEFORE")
-            Log.d("City Name", cityState)
             try {
                 val response = withContext(Dispatchers.IO) {
                     makeApiCall(cityState, model, context)
@@ -302,8 +300,6 @@ fun LoggingUI(navController:NavController, cityState:String, model: AppViewModel
             }
         }
 
-
-        Log.d("AFTER", "NOTE: Continued call")
         errorMessage.value?.let { message ->
             Text(text = message)
         }
@@ -316,31 +312,26 @@ fun LoggingUI(navController:NavController, cityState:String, model: AppViewModel
                 else -> ""
             }
 
-            val minTemp = "${data.main.temp_min?.toString()}$temperatureUnit"
-            val maxTemp = "${data.main.temp_max?.toString()}$temperatureUnit"
-            val weatherDescription = data.weather.firstOrNull()?.description
-            val currTemp = "${data.main.temp?.toString()}$temperatureUnit"
+            val weatherDetails = listOf(
+                "Current Temp" to data.main.temp,
+                "Feels Like" to data.main.feels_like,
+                "Min Temp" to data.main.temp_min,
+                "Max Temp" to data.main.temp_max,
+                "Weather" to data.weather.firstOrNull()?.description,
+                "Humidity" to data.main.humidity?.let { "$it%" }
+            )
 
-            Text(text = "Current Temp: $currTemp",
-                style = TextStyle(
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 15.sp
-            ))
-            Text(text = "Min Temp: $minTemp",
-                style = TextStyle(
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 15.sp
-                ))
-            Text(text = "Max Temp: $maxTemp",
-                style = TextStyle(
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 15.sp
-                ))
-            Text(text = "Weather: $weatherDescription",
-                style = TextStyle(
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 15.sp
-                ))
+            weatherDetails.forEach { (label, value) ->
+                val displayValue = value?.toString() ?: ""
+                Text(
+                    text = if (label == "Humidity" || label == "Weather") "$label: $displayValue" else "$label: $displayValue$temperatureUnit",
+                    style = TextStyle(
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 15.sp
+                    )
+                )
+            }
+
         }
     }
 }
